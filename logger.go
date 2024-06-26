@@ -173,7 +173,7 @@ func WithMaxAge(age int) Option {
 	}
 }
 
-func WithSencitiveFieldsEncoder(f func(cfg zapcore.EncoderConfig) zapcore.Encoder) Option {
+func WithSensitiveFieldsEncoder(f func(cfg zapcore.EncoderConfig) zapcore.Encoder) Option {
 	return func(options *options) error {
 		if f != nil {
 			options.sensitiveEncoder = f
