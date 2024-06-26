@@ -13,17 +13,18 @@ import (
 type Option func(option *options) error
 
 type options struct {
-	level           *zapcore.Level
-	timeFormat      zapcore.TimeEncoder
-	filePath        *string
-	pretty          *bool
-	caller          *bool
-	rotateAtStartup *bool
-	maxSize         *int
-	maxBackups      *int
-	maxAge          *int
-	localtime       *bool
-	compress        *bool
+	level            *zapcore.Level
+	timeFormat       zapcore.TimeEncoder
+	filePath         *string
+	pretty           *bool
+	caller           *bool
+	rotateAtStartup  *bool
+	maxSize          *int
+	maxBackups       *int
+	maxAge           *int
+	localtime        *bool
+	compress         *bool
+	sensitiveEncoder func(cfg zapcore.EncoderConfig) zapcore.Encoder
 }
 
 type Logger struct {
@@ -58,7 +59,12 @@ func New(opts ...Option) (*Logger, error) {
 	stdout := zapcore.AddSync(os.Stdout)
 
 	consoleEncoder := zapcore.NewConsoleEncoder(developmentCfg)
+	
 	fileEncoder := zapcore.NewJSONEncoder(productionCfg)
+	if opt.sensitiveEncoder != nil {
+		fileEncoder = opt.sensitiveEncoder(productionCfg)
+	}
+
 	if opt.pretty != nil && *opt.pretty {
 		productionCfg.EncodeLevel = zapcore.CapitalLevelEncoder
 		fileEncoder = zapcore.NewConsoleEncoder(productionCfg)
@@ -163,6 +169,15 @@ func WithMaxAge(age int) Option {
 			return fmt.Errorf("number of days cannot be less than zero")
 		}
 		options.maxAge = &age
+		return nil
+	}
+}
+
+func WithSencitiveFieldsEncoder(f func(cfg zapcore.EncoderConfig) zapcore.Encoder) Option {
+	return func(options *options) error {
+		if f != nil {
+			options.sensitiveEncoder = f
+		}
 		return nil
 	}
 }
