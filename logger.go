@@ -31,6 +31,11 @@ type Logger struct {
 	*zap.Logger
 }
 
+func (l *Logger) With(fields ...zapcore.Field) *Logger {
+	log := l.Logger.With(fields...)
+	return &Logger{log}
+}
+
 func New(opts ...Option) (*Logger, error) {
 	var opt options
 	for _, option := range opts {
@@ -59,7 +64,7 @@ func New(opts ...Option) (*Logger, error) {
 	stdout := zapcore.AddSync(os.Stdout)
 
 	consoleEncoder := zapcore.NewConsoleEncoder(developmentCfg)
-	
+
 	fileEncoder := zapcore.NewJSONEncoder(productionCfg)
 	if opt.sensitiveEncoder != nil {
 		fileEncoder = opt.sensitiveEncoder(productionCfg)
